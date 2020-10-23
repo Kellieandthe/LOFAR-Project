@@ -25,9 +25,3 @@ I then hope to match each optical source to its potential galaxy cluster by usin
 Once each optical source has been assigned a host galaxy cluster, I then take the angle between the cluster centre, the the optical source, and the radio source using the cosine rule. The lengths in the cosine rule are given by the offsets between pairs of each of the three points. This is going to be attempted in module LOFAR_Angle_Calculation.py.
 
 Throughout my project so far I have used modules such as astropy.table, numpy, math, and matplotlib.pyplot.
-
-## Example code
-
-```python
-
-```
