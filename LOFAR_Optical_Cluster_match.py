@@ -33,7 +33,7 @@ MatchDec = []
 Matchz = []
 MatchzSource = []
 MatchCat = []
-
+   
 
 for i in range(0, len(gal_z)):
     z_vals = []
@@ -47,7 +47,7 @@ for i in range(0, len(gal_z)):
     for j in range(0, len(clus_z)):
         z_val = lf.z_diff_calc(gal_z[i], clus_z[j])
         if abs(z_val) < 0.04:
-            offset = lf.offset(galRA[i], galDec[i], clusRA[j], clusDec[j])
+            offset = lf.offset(clusRA[j], galRA[i], clusDec[j], galDec[i])
             d_val = lf.distGC_calc(clus_z[j], offset)
             if d_val < 15:
                 z_vals.append(z_val)
@@ -77,8 +77,8 @@ for i in range(0, len(gal_z)):
         MatchzSource.append(CluszSources[d_vals.index(min(d_vals))])
         MatchCat.append(ClusCats[d_vals.index(min(d_vals))])
         
-    
-ClusMatchData = RadDat
+
+ClusMatchData = Table.read('Radio source data', format='fits')
 
 ClusMatchData.add_column(MatchID, name='Cluster ID')
 ClusMatchData.add_column(MatchRA, name='Cluster RA')
@@ -86,11 +86,11 @@ ClusMatchData.add_column(MatchDec, name='Cluster Dec')
 ClusMatchData.add_column(Matchz, name='Cluster z')
 ClusMatchData.add_column(MatchzSource, name='Cluster z Source')
 ClusMatchData.add_column(MatchCat, name='Cluster Catalogue')
-ClusMatchData.add_column(delta_z, name='\u0394z')
+ClusMatchData.add_column(delta_z, name='Delta z')
 ClusMatchData.add_column(dist, name='Dist_oc')
 
-ClusMatchData['ClusterRA'].unit = 'deg'
-ClusMatchData['ClusterDec'].unit = 'deg'
+ClusMatchData['Cluster RA'].unit = 'deg'
+ClusMatchData['Cluster Dec'].unit = 'deg'
 ClusMatchData['Dist_oc'].unit = 'Mpc'
 
 ClusMatchData.write('Cluster match data', format = 'fits')

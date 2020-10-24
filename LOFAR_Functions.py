@@ -38,10 +38,19 @@ def distfE_calc(z):
     return d_fE
 
 def distGC_calc(z, Offset):
-    d_GC = abs((c*z*math.tan(Offset/206265))/H_0)
-    # d_GC = abs((c*z*(Offset/206265))/H_0)
+    # d_GC = abs((c*z*math.tan(Offset/206265))/H_0)
+    d_GC = (c*z*(Offset/206265))/H_0
     return d_GC
 
 def angleCalc(d_oc, d_or, d_rc):
-    theta = math.atan((d_oc**2 + d_or**2 - d_rc**2)/(2 * d_oc * d_or))
+    theta = math.acos((d_oc**2 + d_or**2 - d_rc**2)/(2 * d_oc * d_or))
     return theta
+
+def vertAngle(x, y):
+    theta = math.degrees(math.atan(x/y))
+    return theta
+
+def horAngle(x, y):
+    theta = math.degrees(math.atan(y/x))
+    return theta
+
