@@ -6,24 +6,26 @@ Created on Wed Oct 14 09:32:48 2020
 """
 
 from astropy.table import Table
-# import numpy as np
+import numpy as np
 import LOFAR_Functions as lf
-# import math
 
+# Import previously created FITS tables with radio/optical data and cluster data
 RadDat = Table.read('Radio source data', format='fits')
 ClusDat = Table.read('Cluster data', format='fits')
 
-gal_z = RadDat['z']
-galRA = RadDat['Opt RA']
-galDec = RadDat['Opt Dec']
+# Extract relevant arrays to be able to match optical sources to clusters
+gal_z = RadDat['z'].data
+galRA = RadDat['Opt RA'].data
+galDec = RadDat['Opt Dec'].data
 
-clusID = ClusDat['Cluster ID']
-clusRA = ClusDat['RA']
-clusDec = ClusDat['Dec']
-clus_z = ClusDat['z']
-clus_zSource = ClusDat['z Source']
-clusCat = ClusDat['Catalogue']
+clusID = ClusDat['Cluster ID'].data
+clusRA = ClusDat['RA'].data
+clusDec = ClusDat['Dec'].data
+clus_z = ClusDat['z'].data
+clus_zSource = ClusDat['z Source'].data
+clusCat = ClusDat['Catalogue'].data
 
+# Create empty lists to store cluster match data in
 delta_z = []
 dist = []
 
@@ -34,50 +36,37 @@ Matchz = []
 MatchzSource = []
 MatchCat = []
    
-
-for i in range(0, len(gal_z)):
-    z_vals = []
-    d_vals = []
-    ClusIDs = []
-    ClusRAs = []
-    ClusDecs = []
-    Cluszs = []
-    CluszSources = []
-    ClusCats = []
-    for j in range(0, len(clus_z)):
-        z_val = lf.z_diff_calc(gal_z[i], clus_z[j])
-        if abs(z_val) < 0.04:
-            offset = lf.offset(clusRA[j], galRA[i], clusDec[j], galDec[i])
-            d_val = lf.distGC_calc(clus_z[j], offset)
-            if d_val < 15:
-                z_vals.append(z_val)
-                d_vals.append(d_val)
-                ClusIDs.append(clusID[j])
-                ClusRAs.append(clusRA[j])
-                ClusDecs.append(clusDec[j])
-                Cluszs.append(clus_z[j])
-                CluszSources.append(clus_zSource[j])
-                ClusCats.append(clusCat[j])
-    if len(z_vals) == 0:
-        dist.append('None')
-        delta_z.append('None')
-        MatchID.append('None')
-        MatchRA.append('None')
-        MatchDec.append('None')
-        Matchz.append('None')
-        MatchzSource.append('None')
-        MatchCat.append('None')
+for i in range(0, len(gal_z)): # running through every optical source
+    min_d_val = 15 # set a value for the minimum distance value that is out of range of the constraints
+    for j in range(0, len(clus_z)): # running through every cluster
+        z_val = lf.z_diff_calc(gal_z[i], clus_z[j]) # calculating delta z from z values of optical source and cluster
+        if abs(z_val) < 0.04: # constraint on delta z
+            offset = lf.offset(clusRA[j], galRA[i], clusDec[j], galDec[i]) # calculating offset between optical source and cluster
+            d_val = lf.distGC_calc(clus_z[j], offset) # using offset to calculate distance in Mpc between optical source and cluster
+            if d_val < 15 and d_val < min_d_val: # constraint on distance radius and only keeping smallest value
+                min_d_val = d_val # set minimum d value to smaller d value
+                corr_z_val = z_val # remember corresponding delta z
+                ind = j # remember corresponding index in cluster array
+    if min_d_val < 15:
+        dist.append(min_d_val) # store minimum cluster distance
+        delta_z.append(corr_z_val) # store corresponding delta z
+        MatchID.append(clusID[ind]) # store corresponding cluster ID
+        MatchRA.append(clusRA[ind]) # store corresponding cluster RA
+        MatchDec.append(clusDec[ind]) # store corresponding cluster Dec
+        Matchz.append(clus_z[ind]) # store corresponding cluster z
+        MatchzSource.append(clus_zSource[ind]) # store corresponding cluster z source
+        MatchCat.append(clusCat[ind]) # store corresponding cluster catalogue
     else:
-        dist.append(min(d_vals))
-        delta_z.append(z_vals[d_vals.index(min(d_vals))])
-        MatchID.append(ClusIDs[d_vals.index(min(d_vals))])
-        MatchRA.append(ClusRAs[d_vals.index(min(d_vals))])
-        MatchDec.append(ClusDecs[d_vals.index(min(d_vals))])
-        Matchz.append(Cluszs[d_vals.index(min(d_vals))])
-        MatchzSource.append(CluszSources[d_vals.index(min(d_vals))])
-        MatchCat.append(ClusCats[d_vals.index(min(d_vals))])
-        
+        dist.append(np.nan) # if no match is found, store NaN for the optical source
+        delta_z.append(np.nan)
+        MatchID.append(np.nan)
+        MatchRA.append(np.nan)
+        MatchDec.append(np.nan)
+        Matchz.append(np.nan)
+        MatchzSource.append(np.nan)
+        MatchCat.append(np.nan)
 
+# Import Radio Source data FITS file created from LOFAR_Radio_Optical_match.py to append matching cluster data to
 ClusMatchData = Table.read('Radio source data', format='fits')
 
 ClusMatchData.add_column(MatchID, name='Cluster ID')
@@ -93,7 +82,8 @@ ClusMatchData['Cluster RA'].unit = 'deg'
 ClusMatchData['Cluster Dec'].unit = 'deg'
 ClusMatchData['Dist_oc'].unit = 'Mpc'
 
-ClusMatchData.write('Cluster match data', format = 'fits')
+# Create new FITS file with all match data in
+# ClusMatchData.write('Cluster match data', format = 'fits')
 
 
 
