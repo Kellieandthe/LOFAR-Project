@@ -20,8 +20,10 @@ I found that the most efficient way to be able to call the functions I have made
 
 Then, since I am using two cluster catalogues, I cross-reference them to check for any duplicates. This has been done in module LOFAR_Duplicate_Clusters.py.
 
-I then hope to match each optical source to its potential galaxy cluster by using parameters from Garon et al. I determine if the optical source is within |Δz| < 0.04 (where Δz is defined in Garon et al.) of the cluster centre. If it is, I determine whether it is within a 15Mpc radius of the cluster centre. The matching cluster for each optical source is then taken as the closest cluster centre within that 15Mpc radius. This is being attempted in module LOFAR_Optical_Cluster_match.py.
+I then matched each optical source to its potential galaxy cluster by using parameters from Garon et al. I determine if the optical source is within |Δz| < 0.04 (where Δz is defined in Garon et al.) of the cluster centre. If it is, I determine whether it is within a 15Mpc radius of the cluster centre. The matching cluster for each optical source is then taken as the closest cluster centre within that 15Mpc radius. This is done in module LOFAR_Optical_Cluster_match.py.
 
-Once each optical source has been assigned a host galaxy cluster, I then take the angle between the cluster centre, the the optical source, and the radio source using the cosine rule. The lengths in the cosine rule are given by the offsets between pairs of each of the three points. This is going to be attempted in module LOFAR_Angle_Calculation.py.
+Once each optical source has been assigned a host galaxy cluster, I then take the angle between the cluster centre, the optical source, and the radio source. This is done by finding the difference between the angle between the optical and cluster anti-clockwise from North, and the angle between the optical and radio anti-clockwise from North. This is done in module LOFAR_Angle_Calculation.py.
+
+I am now in the process of cutting my data in different ways to look for general trends between the orbital direction of each radio source around its cluster centre.
 
 Throughout my project so far I have used modules such as astropy.table, numpy, math, and matplotlib.pyplot.
