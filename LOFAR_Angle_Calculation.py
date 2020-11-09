@@ -8,6 +8,7 @@ Created on Thu Oct 22 14:02:52 2020
 from astropy.table import Table
 import LOFAR_Functions as lf
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Import Cluster match data FITS file created in LOFAR_Optical_Cluster_match.py
 dat = Table.read('Cluster match data')
@@ -65,20 +66,63 @@ for i in range(0, len(ClusRA)):
         theta_diff.append(360 - diff)
     else:
         theta_diff.append(diff)
-      
+        
+theta_diff = np.array(theta_diff)
+
 
 plt.close('all')
 
-plt.hist(theta_diff, bins=20)
-plt.xlabel('Angle between Cluster-Optical-Radio (deg)')
+WHLCond = dat['Cluster Catalogue'].data == b'WHL15'
+rMCond = dat['Cluster Catalogue'].data == b'redMaPPer'
+
+plt.subplot(3, 1, 1)
+plt.hist(theta_diff, bins=36)
+plt.xlabel('Angle (deg)')
 plt.ylabel('Number of sources')
+plt.title('WHL15 & redMaPPer')
+plt.xticks(np.arange(0, 200, 20))
+
+plt.subplot(3, 1, 2)
+plt.hist(theta_diff[WHLCond], bins=36)
+plt.xlabel('Angle (deg)')
+plt.ylabel('Number of sources')
+plt.title('WHL15')
+plt.xticks(np.arange(0, 200, 20))
+
+plt.subplot(3, 1, 3)
+plt.hist(theta_diff[rMCond], bins=36)
+plt.xlabel('Angle (deg)')
+plt.ylabel('Number of sources')
+plt.title('redMaPPer')
+plt.xticks(np.arange(0, 200, 20))
+plt.suptitle('Angle between Cluster-Optical-Radio sources')
+plt.tight_layout()
 
 dist_oc = (dat['Dist_oc'].data).astype(float)
-plt.figure()
-plt.hist(dist_oc, bins=20)
-plt.xlabel('Distance between cluster centre and optical source (Mpc)')
-plt.ylabel('Number of sources')
 
+plt.figure()
+plt.subplot(3, 1, 1)
+plt.hist(dist_oc, bins=30)
+plt.xlabel('Distance (Mpc)')
+plt.ylabel('Number of sources')
+plt.title('WHL15 & redMaPPer')
+plt.xticks(np.arange(0, 16, 1))
+
+plt.subplot(3, 1, 2)
+plt.hist(dist_oc[WHLCond], bins=30)
+plt.xlabel('Distance (Mpc)')
+plt.ylabel('Number of sources')
+plt.title('WHL15')
+plt.xticks(np.arange(0, 16, 1))
+
+plt.subplot(3, 1, 3)
+plt.hist(dist_oc[rMCond], bins=30)
+plt.xlabel('Distance (Mpc)')
+plt.ylabel('Number of sources')
+plt.title('redMaPPer')
+plt.xticks(np.arange(0, 16, 1))
+plt.suptitle('Distance between cluster centre and optical source')
+plt.tight_layout()
 
 # Adding to the FITS table to include the angle between ROC
 dat.add_column(theta_diff, name='Angle ROC')

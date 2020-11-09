@@ -70,7 +70,11 @@ AllRadData['d_or Error'].unit = 'arcsec'
 
 # AllRadData.write('Radio source data', format='fits')
 
+#%%
+
 plt.close('all')    
+
+noOutliers = d_or < 100
 
 # Plot histogram with logarithmic y axis
 plt.hist(d_or, bins=50, log=True)
@@ -78,18 +82,24 @@ plt.xlabel('Offset (arcseconds)')
 plt.ylabel('Number of sources')
 plt.title('Offset from radio source to optical source')
 
-# Plot histogram with logarithmic x and y axes
-def plot_loghist(x, bins):
-    hist, bins = np.histogram(x, bins=bins)
-    logbins = np.logspace(np.log10(bins[0]),np.log10(bins[-1]),len(bins))
-    plt.hist(x, bins=logbins, log=True)
-    plt.xscale('log')
-
-plt.figure()    
-plot_loghist(d_or, 50)
+plt.figure()
+plt.hist(d_or[noOutliers], bins=50, log=True)
 plt.xlabel('Offset (arcseconds)')
 plt.ylabel('Number of sources')
-plt.title('Offset from radio source to optical source')
+plt.title('Offset from radio source to optical source (outliers removed)')
+
+# Plot histogram with logarithmic x and y axes
+# def plot_loghist(x, bins):
+#     hist, bins = np.histogram(x, bins=bins)
+#     logbins = np.logspace(np.log10(bins[0]),np.log10(bins[-1]),len(bins))
+#     plt.hist(x, bins=logbins, log=True)
+#     plt.xscale('log')
+
+# plt.figure()    
+# plot_loghist(d_or, 50)
+# plt.xlabel('Offset (arcseconds)')
+# plt.ylabel('Number of sources')
+# plt.title('Offset from radio source to optical source')
 
 #%%
 
@@ -104,12 +114,12 @@ offsetColHun = []
 # Determine potential outliers in offsets if >10 or >100 arcseconds
 for i in range(0, len(d_or)):
     if d_or[i] > 10:
-        RadIDColTen.append(RadSource[d_or.index(d_or[i])])
-        OptIDColTen.append(OptSource[d_or.index(d_or[i])])
+        RadIDColTen.append(RadSource[i])
+        OptIDColTen.append(OptSource[i])
         offsetColTen.append(d_or[i])
     if d_or[i] > 100:
-        RadIDColHun.append(RadSource[d_or.index(d_or[i])])
-        OptIDColHun.append(OptSource[d_or.index(d_or[i])])
+        RadIDColHun.append(RadSource[i])
+        OptIDColHun.append(OptSource[i])
         offsetColHun.append(d_or[i])
         
 OverTen = Table([RadIDColTen, OptIDColTen, offsetColTen], names = ('Radio Source ID', 'Optical Source ID', 'offset (arcseconds)'))
