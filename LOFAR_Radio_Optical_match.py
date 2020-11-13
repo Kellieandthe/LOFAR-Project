@@ -8,85 +8,73 @@ Created on Wed Oct  7 15:06:53 2020
 from astropy.table import Table
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 import LOFAR_Functions as lf
 
 # Import FITS table of LoTTS radio & optical data
 LOFAR = Table.read('C:/Users/ppykd1/Documents/PhD/LOFAR Project/Data/HETDEX associations and optical IDs.fits', format='fits')
 
-# Remove sources that have no associated redshift value
-condition = np.isnan((LOFAR['z_best'].compressed()).data) == False
-LOFAR = LOFAR[condition]
+# Lots of data in the imported table is unneeded, so keep only the relevant data and rename it
+LOFAR.keep_columns(['Source_Name', 'RA', 'E_RA', 'DEC', 'E_DEC', 'ID_name',
+                    'ID_ra', 'ID_dec', 'z_best', 'z_best_source'])
+LOFAR.rename_columns(['Source_Name', 'RA', 'E_RA', 'DEC', 'E_DEC', 'ID_name', 
+                      'ID_ra', 'ID_dec', 'z_best', 'z_best_source'],
+                     ['Radio Source', 'Radio RA', 'Radio E_RA', 'Radio DEC',
+                      'Radio E_DEC', 'Optical Source', 'Optical RA',
+                      'Optical DEC', 'Optical z', 'Optical z Source'])
 
-# Lots of data in the imported table is unneeded, so separate the table into helpful arrays
-# The arrays import as 'masked' so the compressed function fixes that
-RadSource = (LOFAR['Source_Name'].compressed()).data
-OptSource = (LOFAR['ID_name'].compressed()).data
-RadRA = (LOFAR['RA'].compressed()).data
-RadDec = (LOFAR['DEC'].compressed()).data
-OptRA = (LOFAR['ID_ra'].compressed()).data
-OptDec = (LOFAR['ID_dec'].compressed()).data
-RadRAErr = (LOFAR['E_RA'].compressed()).data
-RadDecErr = (LOFAR['E_DEC'].compressed()).data
-Opt_z = (LOFAR['z_best'].compressed()).data
-zSource = (LOFAR['z_best_source'].compressed()).data
+# Remove sources that have no associated redshift value and remove redshift values that are < 0
+# (still trying to figure out why these even exist??)
+zCond = (np.isnan((LOFAR['Optical z']).data) == False) & (LOFAR['Optical z'] > 0)
+LOFAR = LOFAR[zCond]
 
+# Replace values in Optical z Source column with 'Spectroscopic' or 'Photometric'
+LOFAR['Optical z Source'] = (LOFAR['Optical z Source']).astype(bytes) # convert to bytes from float otherwise str won't be accepted
+specCond = LOFAR['Optical z Source'] == '1.0' # correspond to spectroscopic redshifts
+photCond = LOFAR['Optical z Source'] == '0.0' # correspond to photometric redshifts
+np.putmask(LOFAR['Optical z Source'], specCond, 'Spectroscopic')
+np.putmask(LOFAR['Optical z Source'], photCond, 'Photometric')
+LOFAR['Optical z Source'] = (LOFAR['Optical z Source']).astype(str) # convert to str as all entries are now strings
 
-d_or = [] # offset between optical and radio source
-x_err = [] # error in x
-y_err = RadDecErr # error in y
-d_err = [] # error in offset
+# Put radio and optical RA and DEC into SkyCoords
+rad = SkyCoord(LOFAR['Radio RA'], LOFAR['Radio DEC'], unit='deg')
+opt = SkyCoord(LOFAR['Optical RA'], LOFAR['Optical DEC'], unit='deg')
+# Find separation between them in arcseconds
+offset = (rad.separation(opt)).arcsecond
 
-# Calculate offset, x, y, and errors
-for i in range(0, len(OptRA)):
-    d_or.append(lf.offset(RadRA[i], OptRA[i], RadDec[i], OptDec[i]))
-    x = lf.x_calc(RadRA[i], OptRA[i], OptDec[i])
-    y = lf.y_calc(RadDec[i], OptDec[i])
-    x_err.append(math.cos(math.radians(OptDec[i])) * RadRAErr[i])
-    d_err.append(math.sqrt((x**2 * x_err[i]**2 + y**2 * y_err[i]**2) / 
-                            (x**2 + y**2)))
+# Calculate the error in the offset from the error in the radio RA and DEC
+offsetErr = lf.sepError(LOFAR['Radio RA'], LOFAR['Radio DEC'],
+                        LOFAR['Optical RA'], LOFAR['Optical DEC'],
+                        LOFAR['Radio E_RA'], LOFAR['Radio E_DEC'],
+                        np.zeros(len(LOFAR['Radio RA'])), # There is no given error for optical RA and DEC so these are given as 0
+                        np.zeros(len(LOFAR['Radio RA'])))
 
-# Convert to arrays from lists    
-d_or = np.array(d_or)
-x_err = np.array(x_err)
-d_err = np.array(d_err)
+# Add offset and errors to table
+LOFAR.add_columns([offset*u.arcsec, offsetErr*u.arcsec],
+                  names=['Radio-Optical Offset', 'Offset Error'])
 
-# Put all data in a table to be exported as FITS file
-AllRadData = Table([RadSource, RadRA, RadDec, RadRAErr, RadDecErr, OptSource, 
-                    OptRA, OptDec, Opt_z, zSource, d_or, d_err],
-                   names = ('Radio Source ID', 'Rad RA', 'Rad Dec', 'RA Error',
-                            'Dec Error', 'Optical Source ID', 'Opt RA',
-                            'Opt Dec', 'z', 'z Source', 'd_or', 'd_or Error'))
-
-AllRadData['Rad RA'].unit = 'deg'
-AllRadData['Rad Dec'].unit = 'deg'
-AllRadData['RA Error'].unit = 'arcsec'
-AllRadData['Dec Error'].unit = 'arcsec'
-AllRadData['Opt RA'].unit = 'deg'
-AllRadData['Opt Dec'].unit = 'deg'
-AllRadData['d_or'].unit = 'arcsec'
-AllRadData['d_or Error'].unit = 'arcsec'
-
-
-# AllRadData.write('Radio source data', format='fits')
+# LOFAR.write('Radio source data', format='fits')
 
 #%%
 
 plt.close('all')    
 
-noOutliers = d_or < 100
+# Remove any anomalous offset data
+noOutliers = offset < 100
 
 # Plot histogram with logarithmic y axis
-plt.hist(d_or, bins=50, log=True)
+plt.hist(offset, bins=50, log=True)
 plt.xlabel('Offset (arcseconds)')
 plt.ylabel('Number of sources')
 plt.title('Offset from radio source to optical source')
 
+# Plot histogram without anomalies
 plt.figure()
-plt.hist(d_or[noOutliers], bins=50, log=True)
+plt.hist(offset[noOutliers], bins=50, log=True)
 plt.xlabel('Offset (arcseconds)')
 plt.ylabel('Number of sources')
-plt.title('Offset from radio source to optical source (outliers removed)')
+plt.title('Offset from radio source to optical source (offset > 100arcsec removed)')
 
 # Plot histogram with logarithmic x and y axes
 # def plot_loghist(x, bins):
@@ -101,29 +89,6 @@ plt.title('Offset from radio source to optical source (outliers removed)')
 # plt.ylabel('Number of sources')
 # plt.title('Offset from radio source to optical source')
 
-#%%
-
-RadIDColTen = []
-OptIDColTen = []
-offsetColTen = []
-
-RadIDColHun = []
-OptIDColHun = []
-offsetColHun = []
-
-# Determine potential outliers in offsets if >10 or >100 arcseconds
-for i in range(0, len(d_or)):
-    if d_or[i] > 10:
-        RadIDColTen.append(RadSource[i])
-        OptIDColTen.append(OptSource[i])
-        offsetColTen.append(d_or[i])
-    if d_or[i] > 100:
-        RadIDColHun.append(RadSource[i])
-        OptIDColHun.append(OptSource[i])
-        offsetColHun.append(d_or[i])
-        
-OverTen = Table([RadIDColTen, OptIDColTen, offsetColTen], names = ('Radio Source ID', 'Optical Source ID', 'offset (arcseconds)'))
-OverHun = Table([RadIDColHun, OptIDColHun, offsetColHun], names = ('Radio Source ID', 'Optical Source ID', 'offset (arcseconds)'))
 
 
 

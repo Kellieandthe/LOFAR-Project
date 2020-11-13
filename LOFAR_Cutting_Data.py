@@ -14,7 +14,7 @@ import numpy as np
 dat = Table.read('Angle data')
 
 cutCond = (dat['d_or'].data >= 1) & (dat['d_or'].data <= 100) & \
-    ((dat['Dist_oc'].data).astype(float) >= 0.5) & ((dat['Dist_oc'].data).astype(float) <= 5)
+    ((dat['Dist_oc'].data).astype(float) >= 0.25) & ((dat['Dist_oc'].data).astype(float) <= 1)
 
 datCut = dat[cutCond]
 
@@ -23,3 +23,8 @@ plt.xlabel('Angle (deg)')
 plt.ylabel('Number of sources')
 plt.title('Angle between Cluster-Optical-Radio sources')
 plt.xticks(np.arange(0, 200, 20))
+
+'''
+Still a lot of work to be done on this module as I need to run my other updated
+modules first (which currently take forever to run!)
+'''

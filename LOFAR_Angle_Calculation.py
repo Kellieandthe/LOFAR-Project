@@ -6,75 +6,40 @@ Created on Thu Oct 22 14:02:52 2020
 """
 
 from astropy.table import Table
-import LOFAR_Functions as lf
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy.coordinates import SkyCoord
 
 # Import Cluster match data FITS file created in LOFAR_Optical_Cluster_match.py
 dat = Table.read('Cluster match data')
 
 # Remove sources that do not have a cluster match
-# condition = np.isnan(dat['Cluster RA'].data) == False
 condition = dat['Cluster RA'].data != b'None'
+# I have edited my code in the meantime so this will be applicable when I'm able to run it in full:
+# condition = np.isnan(dat['Cluster RA'].data) == False
 dat = dat[condition]
 
-# Take relevant arrays for angle calc
-RadRA = dat['Rad RA'].data
-RadDec = dat['Rad Dec'].data
-OptRA = dat['Opt RA'].data
-OptDec = dat['Opt Dec'].data
-ClusRA = (dat['Cluster RA'].data).astype(float)
-ClusDec = (dat['Cluster Dec'].data).astype(float)
+# Put all radio, optical and cluster RA and DEC into SkyCoords
+rad = SkyCoord(dat['Rad RA'], dat['Rad Dec'], unit='deg')
+opt = SkyCoord(dat['Opt RA'], dat['Opt Dec'], unit='deg')
+clus = SkyCoord(dat['Cluster RA'], dat['Cluster Dec'], unit='deg')
 
+# Use Astropy function to determine angle between optical and radio, and optical and cluster
+theta_or = opt.position_angle(rad).degree
+theta_oc = opt.position_angle(clus).degree
+# Find difference between angles
+theta_diff = abs(theta_or - theta_oc)
+# If difference is > 180, take 360 - theta_diff
+np.putmask(theta_diff, theta_diff > 180, (360 - theta_diff))
 
-x_oc = [] # x offset between optical and cluster
-y_oc = [] # y offset between optical and cluster
-x_or = [] # x offset between optical and radio
-y_or = [] # y offset between optical and radio
-
-theta_oc = [] # angle between optical and cluster anti-clockwise from North
-theta_or = [] # angle between optical and radio anti-clockwise from North
-theta_diff = [] # angle between cluster, optical and radio
-
-for i in range(0, len(ClusRA)):
-    x_oc.append(lf.x_calc(ClusRA[i], OptRA[i], OptDec[i])) # store all x and y offsets
-    y_oc.append(lf.y_calc(ClusDec[i], OptDec[i]))
-    x_or.append(lf.x_calc(RadRA[i], OptRA[i], OptDec[i]))
-    y_or.append(lf.y_calc(RadDec[i], OptDec[i]))
-    
-    # Calculate angles by splitting sign of offset values into four quadrants. See project book for detailed diagram.
-    if x_oc[i] > 0 and y_oc[i] > 0:
-        theta_oc.append(lf.vertAngle(x_oc[i], y_oc[i]))
-    elif x_oc[i] > 0 and y_oc[i] < 0:
-        theta_oc.append(180 - lf.vertAngle(x_oc[i], abs(y_oc[i])))
-    elif x_oc[i] < 0 and y_oc[i] < 0:
-        theta_oc.append(180 + lf.vertAngle(x_oc[i], y_oc[i]))
-    elif x_oc[i] < 0 and y_oc[i] > 0:
-        theta_oc.append(360 - lf.vertAngle(abs(x_oc[i]), y_oc[i]))
-        
-    if x_or[i] > 0 and y_or[i] > 0:
-        theta_or.append(lf.vertAngle(x_or[i], y_or[i]))
-    elif x_or[i] > 0 and y_or[i] < 0:
-        theta_or.append(180 - lf.vertAngle(x_or[i], abs(y_or[i])))
-    elif x_or[i] < 0 and y_or[i] < 0:
-        theta_or.append(180 + lf.vertAngle(x_or[i], y_or[i]))
-    elif x_or[i] < 0 and y_or[i] > 0:
-        theta_or.append(360 - lf.vertAngle(abs(x_or[i]), y_or[i]))
-    
-    diff = abs(theta_or[i] - theta_oc[i]) # take difference between angles
-    if diff > 180: # only angle < 180 is wanted
-        theta_diff.append(360 - diff)
-    else:
-        theta_diff.append(diff)
-        
-theta_diff = np.array(theta_diff)
-
+#%%
 
 plt.close('all')
 
 WHLCond = dat['Cluster Catalogue'].data == b'WHL15'
 rMCond = dat['Cluster Catalogue'].data == b'redMaPPer'
 
+# Create subplot showing angle distribution for both catalogues together and individually
 plt.subplot(3, 1, 1)
 plt.hist(theta_diff, bins=36)
 plt.xlabel('Angle (deg)')
@@ -98,25 +63,26 @@ plt.xticks(np.arange(0, 200, 20))
 plt.suptitle('Angle between Cluster-Optical-Radio sources')
 plt.tight_layout()
 
-dist_oc = (dat['Dist_oc'].data).astype(float)
+dat['Dist_oc'] = dat['Dist_oc'].astype(float)
 
+# Create subplot showing distance of galaxy from cluster centre for both catalogues together and individually
 plt.figure()
 plt.subplot(3, 1, 1)
-plt.hist(dist_oc, bins=30)
+plt.hist(dat['Dist_oc'], bins=30)
 plt.xlabel('Distance (Mpc)')
 plt.ylabel('Number of sources')
 plt.title('WHL15 & redMaPPer')
 plt.xticks(np.arange(0, 16, 1))
 
 plt.subplot(3, 1, 2)
-plt.hist(dist_oc[WHLCond], bins=30)
+plt.hist(dat['Dist_oc'][WHLCond], bins=30)
 plt.xlabel('Distance (Mpc)')
 plt.ylabel('Number of sources')
 plt.title('WHL15')
 plt.xticks(np.arange(0, 16, 1))
 
 plt.subplot(3, 1, 3)
-plt.hist(dist_oc[rMCond], bins=30)
+plt.hist(dat['Dist_oc'][rMCond], bins=30)
 plt.xlabel('Distance (Mpc)')
 plt.ylabel('Number of sources')
 plt.title('redMaPPer')
