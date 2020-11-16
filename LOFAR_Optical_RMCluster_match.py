@@ -35,7 +35,7 @@ RMDat.add_column(RMzSource, name='z Source')
 RMDat.keep_columns(['NAME', 'RA', 'DEC', 'Z_LAMBDA', 'Z_LAMBDA_ERR', 'LAMBDA',
                     'LAMBDA_ERR', 'S', 'z Source'])
 RMDat.rename_columns(['Z_LAMBDA', 'Z_LAMBDA_ERR', 'LAMBDA', 'LAMBDA_ERR', 'S'],
-                     ['z', 'E_z', 'Richness Estimate', 'E_Richness',
+                     ['z', 'E_z', 'Richness', 'E_Richness',
                       'Richness Scale Factor'])
 
 # Calculate distances to sources in Mpc using redshift values
@@ -80,6 +80,7 @@ MatchRA = np.array([])
 MatchDec = np.array([])
 Matchz = np.array([])
 MatchzSource = np.array([])
+MatchRich = np.array([])
 
    
 for i in range(0, len(RadDat['Optical z'])): # running through every optical source
@@ -100,6 +101,7 @@ for i in range(0, len(RadDat['Optical z'])): # running through every optical sou
         MatchDec = np.append(MatchDec, RMDat['DEC'][ind]) # store corresponding cluster Dec
         Matchz = np.append(Matchz, RMDat['z'][ind]) # store corresponding cluster z
         MatchzSource = np.append(MatchzSource, RMDat['z Source'][ind]) # store corresponding cluster z source
+        MatchRich = np.append(MatchRich, RMDat['Richness'][ind]) # store corresponding cluster richness
     else:
         dist = np.append(dist, np.nan) # if no match is found, store NaN for the optical source
         delta_z =  np.append(delta_z, np.nan)
@@ -108,25 +110,26 @@ for i in range(0, len(RadDat['Optical z'])): # running through every optical sou
         MatchDec = np.append(MatchDec, np.nan)
         Matchz = np.append(Matchz, np.nan)
         MatchzSource = np.append(MatchzSource, np.nan)
+        MatchRich = np.append(MatchRich, np.nan)
 
 # Import Radio Source data FITS file created from LOFAR_Radio_Optical_match.py to append matching cluster data to
-# ClusMatchData = Table.read('Radio source data', format='fits')
+ClusMatchData = Table.read('Radio source data', format='fits')
 
-# ClusMatchData.add_column(MatchID, name='Cluster ID')
-# ClusMatchData.add_column(MatchRA, name='Cluster RA')
-# ClusMatchData.add_column(MatchDec, name='Cluster Dec')
-# ClusMatchData.add_column(Matchz, name='Cluster z')
-# ClusMatchData.add_column(MatchzSource, name='Cluster z Source')
-# ClusMatchData.add_column(MatchCat, name='Cluster Catalogue')
-# ClusMatchData.add_column(delta_z, name='Delta z')
-# ClusMatchData.add_column(dist, name='Dist_oc')
+ClusMatchData.add_column(MatchID, name='Cluster ID')
+ClusMatchData.add_column(MatchRA, name='Cluster RA')
+ClusMatchData.add_column(MatchDec, name='Cluster Dec')
+ClusMatchData.add_column(Matchz, name='Cluster z')
+ClusMatchData.add_column(MatchzSource, name='Cluster z Source')
+ClusMatchData.add_column(MatchRich, name='Cluster Richness')
+ClusMatchData.add_column(delta_z, name='Delta z')
+ClusMatchData.add_column(dist, name='Dist_oc')
 
-# ClusMatchData['Cluster RA'].unit = 'deg'
-# ClusMatchData['Cluster Dec'].unit = 'deg'
-# ClusMatchData['Dist_oc'].unit = 'Mpc'
+ClusMatchData['Cluster RA'].unit = 'deg'
+ClusMatchData['Cluster Dec'].unit = 'deg'
+ClusMatchData['Dist_oc'].unit = 'Mpc'
 
-# # Create new FITS file with all match data in
-# ClusMatchData.write('Cluster match data', format = 'fits')
+# Create new FITS file with all match data in
+ClusMatchData.write('RM Cluster match data', format = 'fits')
 
 print("This program took", (time.time() - start_time)/3600, "hours to run")
 

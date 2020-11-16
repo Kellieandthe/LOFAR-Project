@@ -81,14 +81,15 @@ If you have any suggestions they would be greatly appreciated!!
 #%%
 
 # Create empty lists to store cluster match data in
-delta_z = np.array([])*u.Mpc
-dist = np.array([])
+delta_z = np.array([])
+dist = np.array([])*u.Mpc
 
 MatchID = np.array([])
 MatchRA = np.array([])
 MatchDec = np.array([])
 Matchz = np.array([])
 MatchzSource = np.array([])
+MatchRich = np.array([])
 
    
 for i in range(0, len(RadDat['Optical z'])): # running through every optical source
@@ -109,6 +110,7 @@ for i in range(0, len(RadDat['Optical z'])): # running through every optical sou
         MatchDec = np.append(MatchDec, WHLDat['DEdeg'][ind]) # store corresponding cluster Dec
         Matchz = np.append(Matchz, WHLDat['z'][ind]) # store corresponding cluster z
         MatchzSource = np.append(MatchzSource, WHLDat['z Source'][ind]) # store corresponding cluster z source
+        MatchRich = np.append(MatchRich, WHLDat['Richness'][ind]) # store corresponding cluster richness
     else:
         dist = np.append(dist, np.nan) # if no match is found, store NaN for the optical source
         delta_z = np.append(delta_z, np.nan)
@@ -117,25 +119,26 @@ for i in range(0, len(RadDat['Optical z'])): # running through every optical sou
         MatchDec = np.append(MatchDec, np.nan)
         Matchz = np.append(Matchz, np.nan)
         MatchzSource = np.append(MatchzSource, np.nan)
+        MatchRich = np.append(MatchRich, np.nan)
 
 # Import Radio Source data FITS file created from LOFAR_Radio_Optical_match.py to append matching cluster data to
-# ClusMatchData = Table.read('Radio source data', format='fits')
+ClusMatchData = Table.read('Radio source data', format='fits')
 
-# ClusMatchData.add_column(MatchID, name='Cluster ID')
-# ClusMatchData.add_column(MatchRA, name='Cluster RA')
-# ClusMatchData.add_column(MatchDec, name='Cluster Dec')
-# ClusMatchData.add_column(Matchz, name='Cluster z')
-# ClusMatchData.add_column(MatchzSource, name='Cluster z Source')
-# ClusMatchData.add_column(MatchCat, name='Cluster Catalogue')
-# ClusMatchData.add_column(delta_z, name='Delta z')
-# ClusMatchData.add_column(dist, name='Dist_oc')
+ClusMatchData.add_column(MatchID, name='Cluster ID')
+ClusMatchData.add_column(MatchRA, name='Cluster RA')
+ClusMatchData.add_column(MatchDec, name='Cluster Dec')
+ClusMatchData.add_column(Matchz, name='Cluster z')
+ClusMatchData.add_column(MatchzSource, name='Cluster z Source')
+ClusMatchData.add_column(MatchRich, name='Cluster Richness')
+ClusMatchData.add_column(delta_z, name='Delta z')
+ClusMatchData.add_column(dist, name='Dist_oc')
 
-# ClusMatchData['Cluster RA'].unit = 'deg'
-# ClusMatchData['Cluster Dec'].unit = 'deg'
-# ClusMatchData['Dist_oc'].unit = 'Mpc'
+ClusMatchData['Cluster RA'].unit = 'deg'
+ClusMatchData['Cluster Dec'].unit = 'deg'
+ClusMatchData['Dist_oc'].unit = 'Mpc'
 
-# # Create new FITS file with all match data in
-# ClusMatchData.write('Cluster match data', format = 'fits')
+# Create new FITS file with all match data in
+ClusMatchData.write('WHL Cluster match data', format = 'fits')
 
 print("This program took", (time.time() - start_time)/3600, "hours to run")
 
