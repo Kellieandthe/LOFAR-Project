@@ -11,20 +11,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-dat = Table.read('Angle data')
+RMdat = Table.read('RM Angle data')
+WHLdat = Table.read('WHL Angle data')
 
-cutCond = (dat['d_or'].data >= 1) & (dat['d_or'].data <= 100) & \
-    ((dat['Dist_oc'].data).astype(float) >= 0.25) & ((dat['Dist_oc'].data).astype(float) <= 1)
+RMcutCond = (RMdat['Radio-Optical Offset'].data >= 1) & (RMdat['Radio-Optical Offset'].data < 100) & (RMdat['Optical z'].data > 0.05)
+WHLcutCond = (WHLdat['Radio-Optical Offset'].data >= 1) & (WHLdat['Radio-Optical Offset'].data < 100) & (WHLdat['Optical z'].data > 0.05)
 
-datCut = dat[cutCond]
+RMdatCut = RMdat[RMcutCond]
+WHLdatCut = WHLdat[WHLcutCond]
 
-plt.hist(datCut['Angle ROC'], bins=18)
+plt.close('all')
+
+plt.subplot(2, 1, 1)
+plt.hist(WHLdatCut['Angle ROC'], bins=18)
 plt.xlabel('Angle (deg)')
 plt.ylabel('Number of sources')
-plt.title('Angle between Cluster-Optical-Radio sources')
+plt.title('WHL15')
 plt.xticks(np.arange(0, 200, 20))
 
-'''
-Still a lot of work to be done on this module as I need to run my other updated
-modules first (which currently take forever to run!)
-'''
+plt.subplot(2, 1, 2)
+plt.hist(RMdatCut['Angle ROC'], bins=18)
+plt.xlabel('Angle (deg)')
+plt.ylabel('Number of sources')
+plt.title('redMaPPer')
+plt.xticks(np.arange(0, 200, 20))
+plt.suptitle('Angle between Cluster-Optical-Radio sources')
+plt.tight_layout()
+

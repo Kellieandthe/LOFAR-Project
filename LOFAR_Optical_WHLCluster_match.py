@@ -5,7 +5,7 @@ Created on Wed Oct 14 09:32:48 2020
 @author: kelli
 """
 
-from astropy.table import Table, vstack
+from astropy.table import Table, vstack, hstack
 import numpy as np
 import LOFAR_Functions as lf
 from astropy import units as u
@@ -40,7 +40,8 @@ WHL15New.rename_column('zspec', 'z')
 
 # Combine old and new WHL catalogue data (and rename richness column)
 WHLDat = vstack([WHL15, WHL15New])
-WHLDat.rename_column('RL*500', 'Richness')
+WHLDat.rename_columns(['Name', 'RAdeg', 'DEdeg', 'z', 'RL*500'], ['Cluster ID',
+                        'Cluster RA', 'Cluster DEC', 'Cluster z', 'Richness'])
 
 # Combine z Source arrays and add to WHL master table
 WHL15NewzSource = np.full(len(WHL15New['z']), 'Spectroscopic') # All new WHL data has spectroscoptic redshift
@@ -49,22 +50,45 @@ WHLDat.add_column(WHLzSource, name='z Source')
 
 # Calculate distances to sources in Mpc using redshift values
 optDist = cosmo.comoving_distance(RadDat['Optical z'])
-ClusDist = cosmo.comoving_distance(WHLDat['z'])
+ClusDist = cosmo.comoving_distance(WHLDat['Cluster z'])
 
 # Put optical and cluster RA and DEC into SkyCoords
 opt = SkyCoord(RadDat['Optical RA'], RadDat['Optical DEC'], distance=optDist, unit=('deg', 'deg', 'Mpc'))
-clus = SkyCoord(WHLDat['RAdeg'],WHLDat['DEdeg'], distance=ClusDist, unit=('deg', 'deg', 'Mpc'))
+clus = SkyCoord(WHLDat['Cluster RA'],WHLDat['Cluster DEC'], distance=ClusDist, unit=('deg', 'deg', 'Mpc'))
 
 # Find 3D matches between opt and clus that are within 5Mpc
-idx1, idx2, d2d, d3d = opt.search_around_3d(clus, 5*u.Mpc)
+idx, d2d, d3d = opt.match_to_catalog_3d(clus)
 d2d = d2d.arcsecond
+
+cutCond = (d3d >= 0.25*u.Mpc) & (d3d <= 5*u.Mpc)
+d3dcut = d3d[cutCond]
+d2dcut = d2d[cutCond]
+idxcut = idx[cutCond]
+Dist2d = optDist[cutCond]*np.radians(d2dcut/3600)
+delta_z = lf.z_diff_calc(RadDat['Optical z'][cutCond], WHLDat['Cluster z'][idxcut])
+
+ClusMatchData = hstack([RadDat[cutCond], WHLDat[idxcut]])
+
+
+ClusMatchData.add_columns([delta_z, d3dcut, d2dcut, Dist2d], names=['Delta z',
+                          '3D Distance', '2D Separation', '2D Distance'])
+
+ClusMatchData['Cluster RA'].unit = 'deg'
+ClusMatchData['Cluster DEC'].unit = 'deg'
+ClusMatchData['3D Distance'].unit = 'Mpc'
+ClusMatchData['2D Separation'].unit = 'arcsec'
+ClusMatchData['2D Distance'].unit = 'Mpc'
+
+# Create new FITS file with all match data in
+ClusMatchData.write('WHL Cluster match data', format = 'fits')
+
 '''
 This question is duplicated in both cluster match modules:
 
 I am still in the process of determing which method I should use to match
 optical sources to clusters, as this method seems perfectly good, however I am
 trying to reproduce results from the Garon et al. paper I am following, and the
-method he has used is to find galaxies that are with |Delta z| < 0.04 (see
+method he has used is to find galaxies that are within |Delta z| < 0.04 (see
 LOFAR_Functions for definition of Delta z function) of a cluster, and then determine the closest galaxy
 within that bound that is within a 15Mpc radius of the cluster centre. This is why
 I have kept the below (extremely slow!!) code. I can't seem to find functionality
@@ -120,25 +144,6 @@ for i in range(0, len(RadDat['Optical z'])): # running through every optical sou
         Matchz = np.append(Matchz, np.nan)
         MatchzSource = np.append(MatchzSource, np.nan)
         MatchRich = np.append(MatchRich, np.nan)
-
-# Import Radio Source data FITS file created from LOFAR_Radio_Optical_match.py to append matching cluster data to
-ClusMatchData = Table.read('Radio source data', format='fits')
-
-ClusMatchData.add_column(MatchID, name='Cluster ID')
-ClusMatchData.add_column(MatchRA, name='Cluster RA')
-ClusMatchData.add_column(MatchDec, name='Cluster Dec')
-ClusMatchData.add_column(Matchz, name='Cluster z')
-ClusMatchData.add_column(MatchzSource, name='Cluster z Source')
-ClusMatchData.add_column(MatchRich, name='Cluster Richness')
-ClusMatchData.add_column(delta_z, name='Delta z')
-ClusMatchData.add_column(dist, name='Dist_oc')
-
-ClusMatchData['Cluster RA'].unit = 'deg'
-ClusMatchData['Cluster Dec'].unit = 'deg'
-ClusMatchData['Dist_oc'].unit = 'Mpc'
-
-# Create new FITS file with all match data in
-ClusMatchData.write('WHL Cluster match data', format = 'fits')
 
 print("This program took", (time.time() - start_time)/3600, "hours to run")
 
