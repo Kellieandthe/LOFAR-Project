@@ -14,12 +14,6 @@ from astropy.coordinates import SkyCoord
 RMdat = Table.read('RM Cluster match data')
 WHLdat = Table.read('WHL Cluster match data')
 
-# # Remove sources that do not have a cluster match
-# condition = dat['Cluster RA'].data != b'None'
-# # I have edited my code in the meantime so this will be applicable when I'm able to run it in full:
-# # condition = np.isnan(dat['Cluster RA'].data) == False
-# dat = dat[condition]
-
 # Put all radio, optical and cluster RA and DEC into SkyCoords
 RMrad = SkyCoord(RMdat['Radio RA'], RMdat['Radio DEC'], unit='deg')
 RMopt = SkyCoord(RMdat['Optical RA'], RMdat['Optical DEC'], unit='deg')
@@ -45,7 +39,7 @@ np.putmask(WHLtheta_diff, WHLtheta_diff > 180, (360 - WHLtheta_diff))
 
 plt.close('all')
 
-# Create subplot showing angle distribution for both catalogues together and individually
+# Create subplot showing angle distribution for both catalogues
 plt.subplot(2, 1, 1)
 plt.hist(WHLtheta_diff, bins=36)
 plt.xlabel('Angle (deg)')
@@ -62,21 +56,21 @@ plt.xticks(np.arange(0, 200, 20))
 plt.suptitle('Angle between Cluster-Optical-Radio sources')
 plt.tight_layout()
 
-# Create subplot showing distance of galaxy from cluster centre for both catalogues together and individually
+# Create subplot showing distance of galaxy from cluster centre for both catalogues
 plt.figure()
 plt.subplot(2, 1, 1)
 plt.hist(WHLdat['3D Distance'], bins=30)
 plt.xlabel('3D Distance (Mpc)')
 plt.ylabel('Number of sources')
 plt.title('WHL15')
-plt.xticks(np.arange(0, 6, 1))
+plt.xticks(np.arange(0, 16, 1))
 
 plt.subplot(2, 1, 2)
 plt.hist(RMdat['3D Distance'], bins=30)
 plt.xlabel('3D Distance (Mpc)')
 plt.ylabel('Number of sources')
 plt.title('redMaPPer')
-plt.xticks(np.arange(0, 6, 1))
+plt.xticks(np.arange(0, 16, 1))
 plt.suptitle('Distance between cluster centre and optical source')
 plt.tight_layout()
 
@@ -86,15 +80,31 @@ plt.hist(WHLdat['2D Distance'], bins=30)
 plt.xlabel('2D Distance (Mpc)')
 plt.ylabel('Number of sources')
 plt.title('WHL15')
-plt.xticks(np.arange(0, 6, 1))
+plt.xticks(np.arange(0, 16, 1))
 
 plt.subplot(2, 1, 2)
 plt.hist(RMdat['2D Distance'], bins=30)
 plt.xlabel('2D Distance (Mpc)')
 plt.ylabel('Number of sources')
 plt.title('redMaPPer')
-plt.xticks(np.arange(0, 6, 1))
+plt.xticks(np.arange(0, 16, 1))
 plt.suptitle('Distance between cluster centre and optical source')
+plt.tight_layout()
+
+# Create subplot delta z between galaxy and cluster centre for both catalogues
+plt.figure()
+plt.subplot(2, 1, 1)
+plt.hist(WHLdat['Delta z'], bins=15)
+plt.xlabel(r'$\Delta$z')
+plt.ylabel('Number of sources')
+plt.title('WHL15')
+
+plt.subplot(2, 1, 2)
+plt.hist(RMdat['Delta z'], bins=15)
+plt.xlabel(r'$\Delta$z')
+plt.ylabel('Number of sources')
+plt.title('redMaPPer')
+plt.suptitle(r'$\Delta$z between matched galaxies and cluster centres')
 plt.tight_layout()
 
 # Adding to the FITS table to include the angle between ROC
@@ -104,8 +114,8 @@ RMdat['Angle ROC'].unit = 'deg'
 WHLdat.add_column(WHLtheta_diff, name='Angle ROC')
 WHLdat['Angle ROC'].unit = 'deg'
 
-RMdat.write('RM Angle data', format = 'fits')
-WHLdat.write('WHL Angle data', format = 'fits')
+# RMdat.write('RM Angle data', format = 'fits')
+# WHLdat.write('WHL Angle data', format = 'fits')
     
     
     
