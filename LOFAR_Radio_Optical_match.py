@@ -23,10 +23,10 @@ LOFAR.rename_columns(['Source_Name', 'RA', 'E_RA', 'DEC', 'E_DEC', 'ID_name',
                      ['Radio Source', 'Radio RA', 'Radio E_RA', 'Radio DEC',
                       'Radio E_DEC', 'Optical Source', 'Optical RA',
                       'Optical DEC', 'Optical z', 'Optical z Source'])
-
+#%%
 # Remove sources that have no associated redshift value and remove redshift values that are < 0
 # (still trying to figure out why these even exist??)
-zCond = (np.isnan((LOFAR['Optical z']).data) == False) & (LOFAR['Optical z'] > 0)
+zCond = (np.isnan((LOFAR['Optical z']).data) == False) & (LOFAR['Optical z'] > 0.05)
 LOFAR = LOFAR[zCond]
 
 # Replace values in Optical z Source column with 'Spectroscopic' or 'Photometric'
@@ -54,7 +54,7 @@ offsetErr = lf.sepError(LOFAR['Radio RA'], LOFAR['Radio DEC'],
 LOFAR.add_columns([offset*u.arcsec, offsetErr*u.arcsec],
                   names=['Radio-Optical Offset', 'Offset Error'])
 
-# LOFAR.write('Radio source data', format='fits')
+LOFAR.write('Radio source data', format='fits')
 
 #%%
 

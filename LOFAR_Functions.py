@@ -24,7 +24,7 @@ def x_calc(RA_1, RA_0, Dec_0):
     Returns
     -------
     x_val : float
-        x offset of objects 0 and 1
+        x offset of objects 0 and 1 in arcseconds
 
     """
     x_val = (RA_1 - RA_0) * np.cos(math.radians(Dec_0)) * 3600
@@ -43,7 +43,7 @@ def y_calc(Dec_1, Dec_0):
     Returns
     -------
     y_val : float
-        y offset of objects 0 and 1
+        y offset of objects 0 and 1 in arcseconds
 
     """
     y_val = (Dec_1 - Dec_0) * 3600
@@ -74,7 +74,7 @@ def sepError(RA0, DEC0, RA1, DEC1, RA0Err, DEC0Err, RA1Err, DEC1Err):
     Returns
     -------
     sepErr : float
-        Error on the separation between objects 0 and 1
+        Error on the separation between objects 0 and 1 in arcseconds
 
     """
     x = (RA1 - RA0) * np.cos(np.radians(DEC0)) * 3600
@@ -103,6 +103,31 @@ def z_diff_calc(z_gal, z_clus):
     """
     z_diff = (z_gal - z_clus) / (1 + z_gal)
     return z_diff
+
+def offset(RA_0, DEC_0, RA_1, DEC_1):
+    """
+
+    Parameters
+    ----------
+    RA0 : float
+        RA of object 0 (deg)
+    DEC0 : float
+        DEC of object 0 ((deg)
+    RA1 : float
+        RA of object 1 (deg)
+    DEC1 : float
+        DEC of object 1 (deg)
+
+    Returns
+    -------
+    sepErr : float
+        Separation between objects 0 and 1 in arcseconds
+
+    """
+    x = (RA_1 - RA_0) * np.cos(np.radians(DEC_0)) * 3600
+    y = (DEC_1 - DEC_0) * 3600
+    Offset = np.sqrt(x**2 + y**2)
+    return Offset
 
 
 
