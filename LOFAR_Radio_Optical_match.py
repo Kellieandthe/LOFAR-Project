@@ -15,27 +15,24 @@ import LOFAR_Functions as lf
 # Import FITS table of LoTTS radio & optical data
 LOFAR = Table.read('C:/Users/ppykd1/Documents/PhD/LOFAR Project/Data/HETDEX associations and optical IDs.fits', format='fits')
 
-# Lots of data in the imported table is unneeded, so keep only the relevant data and rename it
-LOFAR.keep_columns(['Source_Name', 'RA', 'E_RA', 'DEC', 'E_DEC', 'ID_name',
-                    'ID_ra', 'ID_dec', 'z_best', 'z_best_source'])
+# Rename some columns for ease of use
 LOFAR.rename_columns(['Source_Name', 'RA', 'E_RA', 'DEC', 'E_DEC', 'ID_name', 
-                      'ID_ra', 'ID_dec', 'z_best', 'z_best_source'],
+                      'ID_ra', 'ID_dec'],
                      ['Radio Source', 'Radio RA', 'Radio E_RA', 'Radio DEC',
                       'Radio E_DEC', 'Optical Source', 'Optical RA',
-                      'Optical DEC', 'Optical z', 'Optical z Source'])
+                      'Optical DEC'])
 #%%
-# Remove sources that have no associated redshift value and remove redshift values that are < 0
-# (still trying to figure out why these even exist??)
-zCond = (np.isnan((LOFAR['Optical z']).data) == False) & (LOFAR['Optical z'] > 0.05)
+# Remove sources that have no associated redshift value and remove redshift values that are < 0.05
+zCond = (np.isnan((LOFAR['z_best']).data) == False) & (LOFAR['z_best'] > 0.05)
 LOFAR = LOFAR[zCond]
 
 # Replace values in Optical z Source column with 'Spectroscopic' or 'Photometric'
-LOFAR['Optical z Source'] = (LOFAR['Optical z Source']).astype(bytes) # convert to bytes from float otherwise str won't be accepted
-specCond = LOFAR['Optical z Source'] == '1.0' # correspond to spectroscopic redshifts
-photCond = LOFAR['Optical z Source'] == '0.0' # correspond to photometric redshifts
-np.putmask(LOFAR['Optical z Source'], specCond, 'Spectroscopic')
-np.putmask(LOFAR['Optical z Source'], photCond, 'Photometric')
-LOFAR['Optical z Source'] = (LOFAR['Optical z Source']).astype(str) # convert to str as all entries are now strings
+LOFAR['z_best_source'] = (LOFAR['z_best_source']).astype(bytes) # convert to bytes from float otherwise str won't be accepted
+specCond = LOFAR['z_best_source'] == '1.0' # correspond to spectroscopic redshifts
+photCond = LOFAR['z_best_source'] == '0.0' # correspond to photometric redshifts
+np.putmask(LOFAR['z_best_source'], specCond, 'Spectroscopic')
+np.putmask(LOFAR['z_best_source'], photCond, 'Photometric')
+LOFAR['z_best_source'] = (LOFAR['z_best_source']).astype(str) # convert to str as all entries are now strings
 
 # Put radio and optical RA and DEC into SkyCoords
 rad = SkyCoord(LOFAR['Radio RA'], LOFAR['Radio DEC'], unit='deg')
