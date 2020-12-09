@@ -12,10 +12,10 @@ import numpy as np
 # from astropy.coordinates import SkyCoord
 
 
-RMdatG = Table.read('Data\RM Angle data (Garon)')
-RMdat3D = Table.read('Data\RM Angle data (3D)')
-WHLdatG = Table.read('Data\WHL Angle data (Garon)')
-WHLdat3D = Table.read('Data\WHL Angle data (3D)')
+RMdatG = Table.read('Data\RM Angle data (Garon)', format = 'fits')
+RMdat3D = Table.read('Data\RM Angle data (3D)', format = 'fits')
+WHLdatG = Table.read('Data\WHL Angle data (Garon)', format = 'fits')
+WHLdat3D = Table.read('Data\WHL Angle data (3D)', format = 'fits')
 
 # Constrain radio-optical offset to within 1 and 100 arcseconds
 # Constrain redshifts to be > 0.05

@@ -16,15 +16,19 @@ from astropy.cosmology import FlatLambdaCDM
 cosmo = FlatLambdaCDM(H0=68, Om0=0.315)
 
 # Read cluster catalogues and radio-optical data
-Clus = Table.read('Data\Full WHL Cluster Catalogue', format='fits')
+Clus = Table.read('Data\Full RM Cluster Catalogue', format='fits')
 Rad = Table.read('Data\Radio source data', format='fits')
+
+# Spectroscopic z value cuts
+# Clus = Clus[Clus['z Source'] == 'Spectroscopic']
+# Rad = Rad[Rad['z_best_source'] == 'Spectroscopic']
 
 # Put RA and DECs into SkyCoord co ordinates
 Clusco = SkyCoord(Clus['Cluster RA'], Clus['Cluster DEC'], unit='deg')
 Radco = SkyCoord(Rad['Optical RA'], Rad['Optical DEC'], unit='deg')
 
 # Calculate co-moving distance of all z values in radio-optical data
-comDist = np.array(cosmo.comoving_distance(Rad['z_best'])/u.Mpc)
+comDist = np.array(cosmo.angular_diameter_distance(Rad['z_best'])/u.Mpc)
 
 # Create empty arrays to hold cluster IDs, Delta z values, and dist values
 ClusIDs = np.array([])
@@ -73,7 +77,7 @@ clusMatch = join(Rad, Clus, keys='Cluster ID', join_type='left')
 # Remove radio/optical sources with no cluster match
 clusMatch2 = clusMatch[np.isnan(clusMatch['Delta z']) == False]
 # Write to FITS file
-# clusMatch2.write('WHL match data (Garon)', format = 'fits')
+clusMatch2.write('RM match data (Garon)', format = 'fits')
 
             
                 

@@ -129,6 +129,20 @@ def offset(RA_0, DEC_0, RA_1, DEC_1):
     Offset = np.sqrt(x**2 + y**2)
     return Offset
 
+def NAT_cut(Table):
+    NATcut = Table['NAT'] == True
+    return Table[NATcut]
+
+def WAT_cut(Table):
+    WATcut = Table['WAT'] == True
+    return Table[WATcut]
+
+def AGN_cut(Table):
+    AGNcut = (Table['specAGN'] == 1.0) |\
+             (Table['mqcAGN'] == True) |\
+             (Table['XrayClass'] == 1.0)
+    return Table[AGNcut]
+
 
 
 

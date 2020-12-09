@@ -162,10 +162,10 @@ WHLdatG['Angle ROC'].unit = 'deg'
 WHLdat3D.add_column(WHL3Dtheta_diff, name='Angle ROC')
 WHLdat3D['Angle ROC'].unit = 'deg'
 
-#RMdatG.write('RM Angle data (Garon)', format = 'fits')
-#WHLdatG.write('WHL Angle data (Garon)', format = 'fits')
-#RMdat3D.write('RM Angle data (3D)', format = 'fits')
-#WHLdat3D.write('WHL Angle data (3D)', format = 'fits')
+# RMdatG.write('RM Angle data (Garon)', format = 'fits')
+# WHLdatG.write('WHL Angle data (Garon)', format = 'fits')
+# RMdat3D.write('RM Angle data (3D)', format = 'fits')
+# WHLdat3D.write('WHL Angle data (3D)', format = 'fits')
     
     
     

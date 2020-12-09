@@ -34,13 +34,13 @@ WHL15NewzSource = np.full(len(WHL15New['zspec']), 'Spectroscopic') # All new WHL
 WHLzSource = np.concatenate([WHL15zBestSource, WHL15NewzSource])
 WHLDat.add_columns([WHLzBest, WHLzSource], names=['Cluster z', 'z Source'])
 
+# Dud rows that don't feed into SkyCoord nicely
+WHLDat.remove_rows([132684, -1])
 # Calculate optical mass proxy from richness and add to WHL master table
 M500 = 10**(1.08*np.log10(WHLDat['Richness']) - 1.37)
 WHLDat.add_column(M500, name='M500')
-# Dud rows that don't feed into SkyCoord nicely
-WHLDat.remove_rows([132684, -1])
 # Write to its own FITS file
-WHLDat.write('Full WHL Cluster Catalogue', format = 'fits')
+(WHLDat.filled(-1.0)).write('Full WHL Cluster Catalogue', format = 'fits')
 
 #%%
 
