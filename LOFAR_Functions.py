@@ -137,11 +137,24 @@ def WAT_cut(Table):
     WATcut = Table['WAT'] == True
     return Table[WATcut]
 
+def ext_cut(Table):
+    extcut = (Table['NAT'] == True) | (Table['WAT'] == True)
+    return Table[extcut]
+
 def AGN_cut(Table):
     AGNcut = (Table['specAGN'] == 1.0) |\
              (Table['mqcAGN'] == True) |\
              (Table['XrayClass'] == 1.0)
     return Table[AGNcut]
+
+def cut_Mpc(Table, num):
+    cutCond = (Table['2D Distance'].data <= num)
+    return Table[cutCond]
+              
+# Define BCG region - exclusive to WHL matches
+def BCG_cut(Table):
+    BCGcut = Table['2D Distance'].data <= 0.01*Table['r500']
+    return Table[BCGcut]
 
 
 
