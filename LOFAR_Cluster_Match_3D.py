@@ -109,10 +109,10 @@ for i in range(0, len(Rad)):
         match.remove_rows(list(dropInd))
         
         
-    
+#%%
 
 # Create new FITS file with all match data in
-# ClusMatchData.write('WHL match data (3D Spectroscopic)', format = 'fits')
+match.write('RM match data (new 3D)', format = 'fits')
 
 
 
