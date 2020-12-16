@@ -18,7 +18,7 @@ WHL15New = Table.read('C:/Users/ppykd1/Documents/PhD/LOFAR Project/Data/Newly id
 WHL15zBestSource = np.full(len(WHL15['zspec']), 'Spectroscopic')
 np.putmask(WHL15zBestSource, WHL15['zspec'] < -0.9, 'Photometric')
 # Make z best column
-WHL15z_best = WHL15['zphot']
+WHL15z_best = WHL15['zphot'].copy()
 # Replace any photometric z values in z best that have a spectroscopic value instead
 np.putmask(WHL15z_best, WHL15['zspec'] > -0.9, WHL15['zspec'])
 
@@ -51,7 +51,7 @@ RMDat = Table.read('C:/Users/ppykd1/Documents/PhD/LOFAR Project/Data/Redmapper D
 RMzSource = np.full(len(RMDat['Z_SPEC']), 'Spectroscopic')
 np.putmask(RMzSource, RMDat['Z_SPEC'] < -0.9, 'Photometric')
 # Create z best column
-RMzBest = RMDat['Z_LAMBDA']
+RMzBest = RMDat['Z_LAMBDA'].copy()
 np.putmask(RMzBest, RMDat['Z_SPEC'] > -0.9, RMDat['Z_SPEC'])
 
 # Add z best and z Source column, and rename columns

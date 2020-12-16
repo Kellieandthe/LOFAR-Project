@@ -7,6 +7,11 @@ Created on Mon Oct 19 09:32:51 2020
 
 import numpy as np
 import math
+from astropy import units as u
+from astropy.cosmology import FlatLambdaCDM
+
+# Set cosmology according to Garon et al. paper
+cosmo = FlatLambdaCDM(H0=68, Om0=0.315)
 
 
 def x_calc(RA_1, RA_0, Dec_0):
@@ -150,11 +155,39 @@ def AGN_cut(Table):
 def cut_Mpc(Table, num):
     cutCond = (Table['2D Distance'].data <= num)
     return Table[cutCond]
+
+def cut_delZ(Table, num):
+    cutCond = (abs(Table['Delta z'].data) <= num)
+    return Table[cutCond]
               
 # Define BCG region - exclusive to WHL matches
 def BCG_cut(Table):
     BCGcut = Table['2D Distance'].data <= 0.01*Table['r500']
     return Table[BCGcut]
+
+def Lum_calc(S_obs, z):
+    # Take flux value in Wm^-2Hz^-1
+    # Luminosity distance in Mpc, conversion to metres
+    D_L = np.array(cosmo.luminosity_distance(z)*3.0857*10**22/u.Mpc)
+    D_L = D_L.astype(float)
+    # Spectral index for LOFAR data
+    alpha = 0.7
+    # Luminosity calculation
+    L = (S_obs*4*np.pi*D_L**2)/((1+z)**(1+alpha))
+    return L
+
+def Vega_conv(Table):
+    W1vega = Table['w1Mag'] - 2.699
+    W2vega = Table['w2Mag'] - 3.339
+    W3vega = Table['w3Mag'] - 5.174
+    W4vega = Table['w4Mag'] - 6.620
+    Table.add_columns([W1vega, W2vega, W3vega, W4vega], names=['w1Vega', 'w2Vega', 'w3Vega', 'w4Vega'])
+
+
+
+
+
+
 
 
 

@@ -12,7 +12,10 @@ import numpy as np
 
 RMdat = Table.read('Data\RM Angle data (Garon)', format = 'fits')
 WHLdat = Table.read('Data\WHL Angle data (Garon)', format = 'fits')
+RLAGN = Table.read('Data\RLAGN', format = 'fits')
 
+
+#%%
 plt.close('all')
 
 # Create subplot showing distance of galaxy from cluster centre for both catalogues
@@ -144,3 +147,22 @@ plt.ylabel('Number of sources')
 plt.title('redMaPPer')
 plt.suptitle('Richness of cut matched galaxy clusters')
 plt.tight_layout()
+
+# Plot 2D distance vs Delta z
+plt.figure()
+plt.scatter(WHLdat['2D Distance'], WHLdat['Delta z'], s=5, alpha=0.1)
+plt.xlabel('2D Distance (Mpc)')
+plt.ylabel(r'$\Delta$z')
+
+#%%
+
+matches = WHLdat[np.isin(WHLdat['Radio Source'], RLAGN['Source_Name'])]
+match1 = lf.cut_Mpc(matches, 1)
+match2 = lf.cut_delZ(match1, 0.01) # len = 1124
+
+plt.figure()
+plt.hist(match2['Angle ROC'], bins=18)
+plt.xlabel('Angle (deg)')
+plt.ylabel('Number of sources')
+plt.title(r'AGN within 1Mpc and |$\Delta z$| < 0.01')
+plt.xticks(np.arange(0, 200, 20))
