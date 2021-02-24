@@ -142,9 +142,21 @@ def WAT_cut(Table):
     WATcut = Table['WAT'] == True
     return Table[WATcut]
 
+def FR1_cut(Table):
+    FR1cut = Table['FR1'] == True
+    return Table[FR1cut]
+
+def FR2_cut(Table):
+    FR2cut = Table['FR2'] == True
+    return Table[FR2cut]
+
 def ext_cut(Table):
-    extcut = (Table['NAT'] == True) | (Table['WAT'] == True)
+    extcut = (Table['NAT'] == True) | (Table['WAT'] == True | Table['FR1'] == True | Table['FR2'] == True)
     return Table[extcut]
+
+def spec_cut(Table):
+    Speccut = Table['z Source'] == 'Spectroscopic'
+    return Table[Speccut]
 
 def AGN_cut(Table):
     AGNcut = (Table['specAGN'] == 1.0) |\
@@ -152,18 +164,38 @@ def AGN_cut(Table):
              (Table['XrayClass'] == 1.0)
     return Table[AGNcut]
 
-def cut_Mpc(Table, num):
+def Mpc_cut(Table, num):
     cutCond = (Table['2D Distance'].data <= num)
     return Table[cutCond]
 
-def cut_delZ(Table, num):
+def delZ_cut(Table, num):
     cutCond = (abs(Table['Delta z'].data) <= num)
+    return Table[cutCond]
+
+def rich_cut(Table, num):
+    cutCond = (Table['Richness'].data >= num)
+    return Table[cutCond]
+
+def ltflux_cut(Table, num):
+    cutCond = (Table['Total_flux'].data <= num)
+    return Table[cutCond]
+
+def mtflux_cut(Table, num):
+    cutCond = (Table['Total_flux'].data >= num)
     return Table[cutCond]
               
 # Define BCG region - exclusive to WHL matches
-def BCG_cut(Table):
-    BCGcut = Table['2D Distance'].data <= 0.01*Table['r500']
+def BCG_cut(Table, num):
+    BCGcut = Table['2D Distance'].data > num*Table['r500']
     return Table[BCGcut]
+
+def alter_angle(dat):
+    alt_dat = dat.copy()
+    for i in np.arange(0, len(alt_dat)):
+        if alt_dat[i] < 90:
+            alt_dat[i] = alt_dat[i]+180
+    alt_dat = np.sort(alt_dat)
+    return alt_dat
 
 def Lum_calc(S_obs, z):
     # Take flux value in Wm^-2Hz^-1
@@ -182,6 +214,11 @@ def Vega_conv(Table):
     W3vega = Table['w3Mag'] - 5.174
     W4vega = Table['w4Mag'] - 6.620
     Table.add_columns([W1vega, W2vega, W3vega, W4vega], names=['w1Vega', 'w2Vega', 'w3Vega', 'w4Vega'])
+    
+def coords(Table, ind1, ind2):
+    print([Table['Radio RA'][ind1:ind2], Table['Radio DEC'][ind1:ind2]])
+    
+
 
 
 

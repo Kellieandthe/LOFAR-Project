@@ -51,6 +51,7 @@ GPhot = bothZ[(z_test(bothZ) < 0.1)]
 BPhot = bothZ[(z_test(bothZ) > 0.1)]
 
 plt.close('all')
+plt.figure()
 plt.scatter(np.log(1+BPhot['z_spec']), np.log(1+BPhot['z1_median']), s=7, c='darkslateblue') # Plot bad redshifts
 plt.scatter(np.log(1+GPhot['z_spec']), np.log(1+GPhot['z1_median']), s=7, c='teal') # Plot good redshifts
 plt.xticks(np.log(1+np.arange(6)), np.arange(6))
@@ -76,7 +77,8 @@ WGPhot = WPhot[z_test(WPhot) < 0.1]
 # Find all sources from OWISE with a spectroscopic redshift
 WSpec = OWISE[np.isnan(OWISE['z_spec']) == False]
 
-plt.close('all')
+# plt.close('all')
+plt.figure()
 plt.hist([WSpec['w1Mag'], WGPhot['w1Mag'], WPhot['w1Mag'], WNoZ['w1Mag']],
          color=['lawngreen', 'teal', 'darkslateblue', 'mediumpurple'], stacked=True, bins=300)
 plt.xlabel('WISE band 1 magnitude')
@@ -118,7 +120,7 @@ idx, d2d, d3d = Lco.match_to_catalog_sky(Mco)
 d2d = d2d.arcsecond
 
 # Plot separations between catalogues
-plt.close('all')
+# plt.close('all')
 plt.figure()
 plt.hist(d2d, bins=50)
 plt.xlabel('Offset (arcseconds)')
@@ -136,7 +138,7 @@ FCOZGM = FCOZG[d2d<=2]
 FCOZGM = hstack([FCOZGM, Mnew])
 
 # Write to FITS table
-FCOZGM.write('FCOZGM', format='fits')
+# FCOZGM.write('FCOZGM', format='fits')
 
 #%% Figure 3
 # Remove extra spaces
@@ -157,7 +159,7 @@ notSFG = FCOZGM[(FCOZGM['SUBCLASS'] != 'STARFORMING') &\
 # Find luminosities of non-SFG
 L150notSFG = lf.Lum_calc(notSFG['Total_flux']*10**(-29), notSFG['z_best'])
 
-plt.close('all')
+# plt.close('all')
 plt.figure()
 plt.scatter(SFG['SFR'][SFG['SFR'] > -99], np.log10(L150SFG)[SFG['SFR'] > -99], s=4, alpha=0.1)
 plt.scatter(notSFG['SFR'][notSFG['SFR'] > -99], np.log10(L150notSFG)[notSFG['SFR'] > -99], s=4, alpha=0.1, c='r')
@@ -272,7 +274,7 @@ plt.ylim([-0.5, 2])
 plt.xlabel('W2-W3 (Vega mags)')
 plt.ylabel('W1-W2 (Vega mags)')
 
-RLAGN.write('RLAGN', format='fits')
+# RLAGN.write('RLAGN', format='fits')
 
 
 

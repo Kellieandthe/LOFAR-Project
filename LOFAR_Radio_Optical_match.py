@@ -13,7 +13,8 @@ from astropy.coordinates import SkyCoord
 import LOFAR_Functions as lf
 
 # Import FITS table of LoTTS radio & optical data
-LOFAR = Table.read('C:/Users/ppykd1/Documents/PhD/LOFAR Project/Data/HETDEX associations and optical IDs.fits', format='fits')
+# LOFAR = Table.read('C:/Users/ppykd1/Documents/PhD/LOFAR Project/Data/HETDEX associations and optical IDs.fits', format='fits')
+LOFAR = Table.read('Data\RLAGN')
 
 # Rename some columns for ease of use
 LOFAR.rename_columns(['Source_Name', 'RA', 'E_RA', 'DEC', 'E_DEC', 'ID_name', 
